@@ -136,7 +136,7 @@ case "$COMMAND" in
         ;;
     release)
         # Pass remaining args to create_release, filtering out --skip-checks
-        local release_args=()
+        release_args=()
         for arg in "$@"; do
             if [[ "$arg" != "--skip-checks" && "$arg" != "release" ]]; then
                 release_args+=("$arg")
