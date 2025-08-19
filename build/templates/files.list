@@ -1,0 +1,15 @@
+# Distribution Files List
+# This file defines what gets included in the distribution package
+# Format: source_path:destination_path
+# Lines starting with # are comments
+
+# Core scripts
+src/emoji-typing-setup.sh:emoji-typing-setup.sh
+src/remove-emoji-support.sh:remove-emoji-support.sh
+
+# Configuration
+config/settings.conf:config/settings.conf
+
+# Documentation and legal
+LICENSE:LICENSE
+build/templates/README.md:README.md

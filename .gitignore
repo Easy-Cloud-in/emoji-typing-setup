@@ -1,0 +1,22 @@
+# Distribution packages
+dist/
+
+# Temporary files
+*.tmp
+*.log
+*.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# User configuration backups
+*backup*
+input-sources-backup*
