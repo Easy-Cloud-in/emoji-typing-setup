@@ -13,13 +13,20 @@ TEMPLATES_DIR="$BUILD_DIR/templates"
 DIST_DIR="$PROJECT_ROOT/dist"
 PACKAGE_NAME="emoji-typing-setup"
 
-# Get version dynamically
-if ! VERSION=$("$BUILD_DIR/get-version.sh"); then
-    error "Failed to determine version"
-    exit 1
-fi
-
-ARCHIVE_NAME="${PACKAGE_NAME}-v${VERSION}.zip"
+# Parse arguments
+SKIP_CHECKS=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --skip-checks)
+            SKIP_CHECKS=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
 
 # Colors for output
 RED='\033[0;31m'
@@ -38,6 +45,68 @@ success() {
 
 error() {
     echo -e "${RED}[ERROR]${NC} $*" >&2
+}
+
+# Perform git state validation
+validate_git_state() {
+    if [[ "$SKIP_CHECKS" == true ]]; then
+        log "⚠️  Skipping git state validation as requested"
+        return 0
+    fi
+    
+    log "🔍 Performing git state validation..."
+    
+    # Check if we're on the main branch
+    local current_branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+    if [[ "$current_branch" != "main" ]]; then
+        error "Not on main branch. Current branch: $current_branch"
+        error "Please switch to main branch before building."
+        return 1
+    fi
+    
+    # Fetch latest changes from origin
+    log "📡 Fetching latest changes from origin..."
+    git fetch origin
+    
+    # Check if main is up to date with origin/main
+    local local_commit remote_commit
+    local_commit=$(git rev-parse main)
+    remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
+    
+    if [[ -n "$remote_commit" && "$local_commit" != "$remote_commit" ]]; then
+        error "Local main branch is not up to date with origin/main"
+        error "Local:  $local_commit"
+        error "Remote: $remote_commit"
+        error "Please pull latest changes: git pull origin main"
+        return 1
+    fi
+    
+    # Check working tree status (allow CHANGELOG.md changes)
+    local git_status filtered_status
+    git_status=$(git status --porcelain)
+    filtered_status=$(echo "$git_status" | grep -v "CHANGELOG.md" || true)
+    
+    if [[ -n "$filtered_status" ]]; then
+        error "Working tree is not clean (excluding CHANGELOG.md)"
+        error "Uncommitted changes:"
+        echo "$filtered_status" >&2
+        error "Please commit or stash your changes before building."
+        return 1
+    fi
+    
+    # Show info if CHANGELOG.md has changes but continue
+    local changelog_changes
+    changelog_changes=$(echo "$git_status" | grep "CHANGELOG.md" || true)
+    if [[ -n "$changelog_changes" ]]; then
+        log "ℹ️  Note: CHANGELOG.md has uncommitted changes (this is allowed)"
+        log "   Changes: $changelog_changes"
+    fi
+    
+    success "Git state validation passed!"
+    log "   - On main branch: $current_branch"
+    log "   - Up to date with origin/main"
+    log "   - Working tree clean (CHANGELOG.md changes allowed)"
 }
 
 # Check dependencies
@@ -135,6 +204,14 @@ cleanup_staging() {
 
 # Main build process
 build_distribution() {
+    # Get version dynamically (after git validation)
+    if ! VERSION=$("$BUILD_DIR/get-version.sh"); then
+        error "Failed to determine version"
+        exit 1
+    fi
+    
+    ARCHIVE_NAME="${PACKAGE_NAME}-v${VERSION}.zip"
+    
     log "Building distribution package for version v$VERSION"
     
     prepare_staging
@@ -148,6 +225,9 @@ main() {
     echo "🏗️  Building Emoji Typing Setup Distribution"
     echo "==========================================="
     
+    cd "$PROJECT_ROOT"
+    
+    validate_git_state
     check_dependencies
     build_distribution
     

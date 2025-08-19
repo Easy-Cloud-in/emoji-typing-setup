@@ -87,23 +87,7 @@ fi
 
 log "Version: $VERSION"
 
-# Check origin sync unless skipping (basic git state already validated by build)
-if [[ "$SKIP_CHECKS" == false ]]; then
-    # Check if we're synced with origin
-    log "Checking sync with origin/main..."
-    git fetch origin
-    
-    local_commit=$(git rev-parse HEAD)
-    remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
-    
-    if [[ -n "$remote_commit" && "$local_commit" != "$remote_commit" ]]; then
-        error "Local main is not synced with origin/main"
-        error "Please pull latest changes: git pull origin main"
-        exit 1
-    fi
-    
-    success "Git state is synced with origin"
-fi
+# No git validation here - it's handled by build-dist.sh
 
 # Check if tag already exists
 TAG_NAME="v$VERSION"
@@ -128,9 +112,14 @@ fi
 log "Creating tag: $TAG_NAME"
 git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
 
-# Build distribution
+# Build distribution (includes git validation)
 log "Building distribution package..."
-if ! "$PROJECT_ROOT/build/build-dist.sh"; then
+build_args=()
+if [[ "$SKIP_CHECKS" == true ]]; then
+    build_args+=("--skip-checks")
+fi
+
+if ! "$PROJECT_ROOT/build/build-dist.sh" "${build_args[@]}"; then
     error "Failed to build distribution package"
     error "Removing created tag..."
     git tag -d "$TAG_NAME"

@@ -55,10 +55,10 @@ Core version extraction and validation.
 
 ### `create-release.sh` - Release Workflow
 
-Complete release creation process.
+Complete release creation process with version/tag management.
 
 ```bash
-# Create release (validates everything)
+# Create release (git validation handled by build-dist.sh)
 ./build/create-release.sh
 
 # Skip git validation
@@ -70,11 +70,14 @@ Complete release creation process.
 
 ### `build-dist.sh` - Package Builder
 
-Creates the distribution zip file.
+Performs git validation and creates the distribution zip file.
 
 ```bash
-# Build distribution package
+# Build distribution package (includes git validation)
 ./build/build-dist.sh
+
+# Skip git validation for development
+./build/build-dist.sh --skip-checks
 ```
 
 ## Directory Structure
@@ -153,11 +156,11 @@ Edit `build/templates/README.md` to customize the distribution README.
 
 ## Git State Requirements
 
-For builds and releases, the system validates:
+Git validation is performed by `build-dist.sh` (single validation point):
 
 - ✅ Must be on `main` branch
 - ✅ Working tree must be clean (**CHANGELOG.md changes are allowed**)
-- ✅ Must be synced with `origin/main` (for releases)
+- ✅ Must be synced with `origin/main`
 
 ### Skip Validation
 
@@ -170,6 +173,8 @@ For development/testing, you can skip git validation:
 # Skip git checks for release
 ./build/dev.sh release --skip-checks
 ```
+
+**Note**: The `--skip-checks` flag is passed through to `build-dist.sh` which handles all validation.
 
 ## Requirements
 

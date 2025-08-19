@@ -34,20 +34,7 @@ show_help() {
 
 build_dist() {
     echo "🏗️  Building distribution..."
-    
-    # Check git state before building (unless --skip-checks is passed)
-    if [[ "${SKIP_GIT_CHECKS:-false}" != "true" ]]; then
-        if ! "$PROJECT_ROOT/build/get-version.sh" --check-git >/dev/null; then
-            echo "❌ Build failed: Git state validation failed"
-            echo "   Make sure you're on main branch with clean working tree (CHANGELOG.md changes allowed)"
-            echo "   Or use: ./build/dev.sh build --skip-checks"
-            return 1
-        fi
-    else
-        echo "⚠️  Skipping git state validation as requested"
-    fi
-    
-    "$PROJECT_ROOT/build/build-dist.sh"
+    "$PROJECT_ROOT/build/build-dist.sh" ${SKIP_GIT_CHECKS:+--skip-checks}
 }
 
 run_tests() {
@@ -135,9 +122,6 @@ case "$COMMAND" in
         show_version
         ;;
     release)
-        # Build first (includes git state validation), then create release
-        build_dist
-        
         # Pass remaining args to create_release, filtering out --skip-checks
         release_args=()
         for arg in "$@"; do

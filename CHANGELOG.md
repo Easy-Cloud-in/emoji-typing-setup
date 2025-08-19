@@ -1,6 +1,8 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+- 2025-08-19 fix: dev.sh relese flag  builds
+
 - 2025-08-19 feat: 🚀 Initial commit
 
 

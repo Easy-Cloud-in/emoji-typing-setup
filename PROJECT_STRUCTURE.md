@@ -66,15 +66,18 @@ cd emoji-typing-minimal-*/
 ## For Developers
 
 ```bash
-# Build distribution
-./scripts/dev.sh build
+# Build distribution (includes git validation)
+./build/dev.sh build
+
+# Create complete release
+./build/dev.sh release
 
 # Run tests
-./scripts/dev.sh test
+./build/dev.sh test
 
 # Check code quality
-./scripts/dev.sh lint
+./build/dev.sh lint
 
 # Clean temporary files
-./scripts/dev.sh clean
+./build/dev.sh clean
 ```

@@ -66,9 +66,11 @@ project-root/
 - ✅ Must be on `main` branch
 - ✅ Working tree must be clean
 - ✅ **EXCEPTION**: CHANGELOG.md changes are ALWAYS allowed
-- ✅ Must be synced with origin/main (for releases)
+- ✅ Must be synced with origin/main
 
-**Rationale**: Developers commonly update CHANGELOG.md and immediately run build/release.
+**Validation Location**: All git state validation is performed in `build-dist.sh` to avoid duplication.
+
+**Rationale**: Developers commonly update CHANGELOG.md and immediately run build/release. Single validation point ensures consistency.
 
 ## Build System Components
 
@@ -122,7 +124,7 @@ project-root/
 
 ### 3. `build/create-release.sh` - Release Workflow
 
-**Purpose**: Complete release process with validation
+**Purpose**: Complete release process with version/tag management
 
 **Usage**:
 
@@ -134,25 +136,40 @@ project-root/
 
 **Process**:
 
-1. Validate git state (main branch, clean tree, synced)
-2. Extract version from CHANGELOG.md
+1. Extract version from CHANGELOG.md
+2. Check if tag already exists
 3. Create git tag
-4. Build distribution package
+4. Call `build-dist.sh` (which handles git validation and packaging)
 5. Push tag to origin
+
+**Note**: Git state validation is delegated to `build-dist.sh` to avoid duplication.
 
 ### 4. `build/build-dist.sh` - Package Builder
 
-**Purpose**: Create distribution zip files
+**Purpose**: Git validation and distribution package creation
+
+**Usage**:
+
+```bash
+./build/build-dist.sh                     # Full validation and build
+./build/build-dist.sh --skip-checks       # Skip git validation
+```
 
 **Process**:
 
-1. Clean staging area (`build/staging/`)
-2. Copy files based on `build/templates/files.list`
-3. Set proper permissions
-4. Create zip file in `dist/`
-5. Clean up staging area
+1. **Git State Validation** (unless `--skip-checks`):
+   - Verify on main branch
+   - Check sync with origin/main
+   - Ensure clean working tree (CHANGELOG.md changes allowed)
+2. Clean staging area (`build/staging/`)
+3. Copy files based on `build/templates/files.list`
+4. Set proper permissions
+5. Create zip file in `dist/`
+6. Clean up staging area
 
 **Output**: `dist/project-name-vX.Y.Z.zip`
+
+**Note**: This is the single point for git validation to avoid duplication across scripts.
 
 ## Template System
 
@@ -239,9 +256,9 @@ git commit -m "feat: Implement new feature"
 ./build/dev.sh release
 
 # This will:
-# - Validate git state (allowing CHANGELOG.md changes)
+# - Extract version from CHANGELOG.md
 # - Create tag v1.2.3
-# - Build dist/project-name-v1.2.3.zip
+# - Call build-dist.sh which validates git state and builds package
 # - Push tag to origin
 ```
 

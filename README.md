@@ -175,7 +175,7 @@ emoji-typing-setup/
 │   └── settings.conf            # Core configuration settings
 ├── build/                       # Build tools
 │   └── build-dist.sh            # Distribution package builder
-├── scripts/                     # Development scripts
+├── build/                       # Build & development tools
 │   └── dev.sh                   # Development helper script
 ├── docs/                        # Documentation
 │   ├── INSTALLATION_GUIDE.md    # User installation guide
@@ -314,8 +314,8 @@ We provide a **minimal distribution package** (`emoji-typing-minimal-2.1.0.zip`)
 To create the distribution package:
 
 ```bash
-./scripts/dev.sh build
-# Creates dist/emoji-typing-minimal-2.1.0.zip
+./build/dev.sh build
+# Creates dist/emoji-typing-setup-v2.1.0.zip
 ```
 
 This approach separates user-facing distribution from development files, providing a cleaner experience for end users while maintaining full development capabilities.
