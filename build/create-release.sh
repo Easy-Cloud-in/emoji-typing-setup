@@ -87,15 +87,8 @@ fi
 
 log "Version: $VERSION"
 
-# Validate git state unless skipping
+# Check origin sync unless skipping (basic git state already validated by build)
 if [[ "$SKIP_CHECKS" == false ]]; then
-    log "Validating git state..."
-    
-    if ! "$PROJECT_ROOT/build/get-version.sh" --check-git >/dev/null; then
-        error "Git state validation failed"
-        exit 1
-    fi
-    
     # Check if we're synced with origin
     log "Checking sync with origin/main..."
     git fetch origin
@@ -109,7 +102,7 @@ if [[ "$SKIP_CHECKS" == false ]]; then
         exit 1
     fi
     
-    success "Git state is valid"
+    success "Git state is synced with origin"
 fi
 
 # Check if tag already exists

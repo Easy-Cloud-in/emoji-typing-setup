@@ -135,6 +135,9 @@ case "$COMMAND" in
         show_version
         ;;
     release)
+        # Build first (includes git state validation), then create release
+        build_dist
+        
         # Pass remaining args to create_release, filtering out --skip-checks
         release_args=()
         for arg in "$@"; do
