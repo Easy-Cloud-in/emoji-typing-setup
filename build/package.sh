@@ -21,16 +21,23 @@ fi
 echo "📡 Fetching latest changes from origin..."
 git fetch origin
 
-# Check if main is up to date with origin/main
+# Check if local main is behind origin/main (being ahead is OK)
 local_commit=$(git rev-parse main)
 remote_commit=$(git rev-parse origin/main)
+base_commit=$(git merge-base main origin/main)
 
-if [ "$local_commit" != "$remote_commit" ]; then
-    echo "❌ Error: Local main branch is not up to date with origin/main"
+# Only fail if local is behind remote (missing commits from remote)
+if [ "$local_commit" = "$base_commit" ] && [ "$local_commit" != "$remote_commit" ]; then
+    echo "❌ Error: Local main branch is behind origin/main"
     echo "   Local:  $local_commit"
     echo "   Remote: $remote_commit"
     echo "   Please pull latest changes: git pull origin main"
     exit 1
+elif [ "$local_commit" != "$remote_commit" ]; then
+    # Local is ahead of remote - this is fine for development
+    echo "ℹ️  Note: Local main is ahead of origin/main (this is OK for development)"
+    echo "   Local:  $local_commit"
+    echo "   Remote: $remote_commit"
 fi
 
 # Check working tree status
