@@ -113,40 +113,29 @@ if [ "$SKIP_CHECKS" = false ]; then
     echo "🔍 Checking for updates from remote..."
     git fetch origin
 
-    # Check if local main is behind remote main
+    # Check if local main is behind origin/main (being ahead is OK)
     LOCAL=$(git rev-parse @)
     REMOTE=$(git rev-parse @{u})
-    if [ "$LOCAL" != "$REMOTE" ]; then
-        echo "❌ Error: Your local main branch is not in sync with origin/main."
+    BASE=$(git merge-base @ @{u})
+
+    # Only fail if local is behind remote (missing commits from remote)
+    if [ "$LOCAL" = "$BASE" ] && [ "$LOCAL" != "$REMOTE" ]; then
+        echo "❌ Error: Your local main branch is behind origin/main."
         echo "   Please pull the latest changes and try again."
         echo "   Run 'git pull origin main' to update your local branch."
         exit 1
+    elif [ "$LOCAL" != "$REMOTE" ]; then
+        # Local is ahead of remote - this is fine for development
+        echo "ℹ️  Note: Local main is ahead of origin/main (this is OK for development)"
     fi
 
-    # Check for unpushed commits
+    # Check for unpushed commits (now allowed in development workflow)
     UNPUSHED_COMMITS=$(git log @{u}..@ --oneline)
     if [ -n "$UNPUSHED_COMMITS" ]; then
-        if [ "$IGNORE_CHANGELOG" = true ]; then
-            # Check if unpushed commits only modify CHANGELOG.md
-            UNPUSHED_NON_CHANGELOG=$(git log @{u}..@ --name-only --pretty=format: | grep -v "^$" | grep -v "^CHANGELOG.md$" | head -1)
-            if [ -n "$UNPUSHED_NON_CHANGELOG" ]; then
-                echo "❌ Error: You have unpushed commits in your local main branch that affect files other than CHANGELOG.md."
-                echo "   Please push your changes to origin/main and try again."
-                echo "   Unpushed commits:"
-                echo "   $UNPUSHED_COMMITS"
-                exit 1
-            else
-                echo "⚠️  Warning: You have unpushed commits that only modify CHANGELOG.md - continuing..."
-                echo "   Unpushed commits:"
-                echo "   $UNPUSHED_COMMITS"
-            fi
-        else
-            echo "❌ Error: You have unpushed commits in your local main branch."
-            echo "   Please push your changes to origin/main and try again."
-            echo "   Unpushed commits:"
-            echo "   $UNPUSHED_COMMITS"
-            exit 1
-        fi
+        echo "ℹ️  Note: You have unpushed commits (this is OK for development workflow)"
+        echo "   Unpushed commits:"
+        echo "   $UNPUSHED_COMMITS"
+        echo "   Remember to push after successful release creation"
     fi
 
     if [ "$IGNORE_CHANGELOG" = true ]; then
