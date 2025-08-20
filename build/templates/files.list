@@ -6,6 +6,12 @@
 # Core scripts
 src/emoji-typing-setup.sh:emoji-typing-setup.sh
 src/remove-emoji-support.sh:remove-emoji-support.sh
+src/toggle-emoji-support.sh:toggle-emoji-support.sh
+src/setup-aliases.sh:setup-aliases.sh
+
+# Installation scripts (zip-specific versions)
+build/templates/install.sh:install.sh
+build/templates/uninstall.sh:uninstall.sh
 
 # Configuration
 config/settings.conf:config/settings.conf

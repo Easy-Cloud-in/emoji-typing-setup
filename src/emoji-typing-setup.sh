@@ -23,7 +23,7 @@ set -euo pipefail
 
 # Source configuration files
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/config/settings.conf"
+CONFIG_FILE="$SCRIPT_DIR/../config/settings.conf"
 USER_CONFIG_FILE="$HOME/.config/emoji-typing-setup/user.conf"
 
 # Load main configuration
@@ -581,7 +581,7 @@ uninstall_emoji_support() {
     # Remove the package
     if check_package_installed "$REQUIRED_PACKAGE"; then
         log "INFO" "Removing $REQUIRED_PACKAGE package..."
-        if apt-get remove -y "$REQUIRED_PACKAGE" >/dev/null 2>&1; then
+        if sudo apt-get remove -y "$REQUIRED_PACKAGE" >/dev/null 2>&1; then
             log "SUCCESS" "Successfully removed $REQUIRED_PACKAGE"
         else
             log "ERROR" "Failed to remove $REQUIRED_PACKAGE"
@@ -595,6 +595,8 @@ uninstall_emoji_support() {
     if [[ -f "$BACKUP_FILE" ]]; then
         log "INFO" "Removing backup file..."
         rm -f "$BACKUP_FILE"
+        # Try to remove directory if empty
+        rmdir "$BACKUP_DIR" 2>/dev/null || true
         log "SUCCESS" "Backup file removed"
     fi
 
