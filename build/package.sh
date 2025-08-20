@@ -84,8 +84,8 @@ while IFS=':' read -r source_path dest_path || [[ -n "$source_path" ]]; do
         dest_path="$(basename "$source_path")"
     fi
     
-    local full_source="$source_path"
-    local full_dest="$dist_dir/$dest_path"
+    full_source="$source_path"
+    full_dest="$dist_dir/$dest_path"
     
     # Create destination directory if needed
     mkdir -p "$(dirname "$full_dest")"
