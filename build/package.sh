@@ -1,6 +1,38 @@
 #!/bin/bash
 set -e
 
+# Show help information
+show_help() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Create a local distribution package (zip file only)"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help           Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0                   # Create local zip package"
+    echo ""
+    echo "Note: This script only creates the zip file locally in dist/"
+    echo "      For GitHub releases, use: ./build/create-distribution.sh --create-release"
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+    shift
+done
+
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
