@@ -22,12 +22,14 @@ log_info() {
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $*${NC}"
+    echo -e "${GREEN}\u2705 $*${NC}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [SUCCESS] $*" >> "$LOG_FILE"
     ((TESTS_PASSED++))
 }
 
 log_error() {
-    echo -e "${RED}❌ $*${NC}"
+    echo -e "${RED}\u274c $*${NC}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [ERROR] $*" >> "$LOG_FILE"
     ((TESTS_FAILED++))
 }
 
@@ -464,12 +466,18 @@ main() {
     echo "=============================================="
     echo "📊 Validation Summary"
     echo "=============================================="
-    echo -e "${GREEN}✅ Tests Passed: $TESTS_PASSED${NC}"
-    echo -e "${RED}❌ Tests Failed: $TESTS_FAILED${NC}"
-    echo -e "${YELLOW}⚠️  Tests Skipped: $TESTS_SKIPPED${NC}"
+    echo -e "${GREEN}\u2705 Tests Passed: $TESTS_PASSED${NC}"
+    echo -e "${RED}\u274c Tests Failed: $TESTS_FAILED${NC}"
+    echo -e "${YELLOW}\u26a0\ufe0f  Tests Skipped: $TESTS_SKIPPED${NC}"
 
     local total_tests=$((TESTS_PASSED + TESTS_FAILED + TESTS_SKIPPED))
     echo "📈 Total Tests: $total_tests"
+    echo ""
+    echo "🛠️ If you encounter any issues:"
+    echo "   • Check the log file at '/tmp/emoji-typing-setup.log' for details"
+    echo "   • Run './src/validate-installation.sh' for troubleshooting"
+    echo "   • Check 'docs/TROUBLESHOOTING.md' for common problems"
+    echo ""
 
     if [[ $TESTS_FAILED -eq 0 ]]; then
         echo

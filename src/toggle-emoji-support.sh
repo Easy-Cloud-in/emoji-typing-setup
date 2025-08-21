@@ -23,7 +23,7 @@ Usage: toggle-emoji-support.sh [OPTION]
 
 OPTIONS:
     --enable-emoji     Enable emoji typing functionality
-    --disable-emoji    Disable emoji typing functionality  
+    --disable-emoji    Disable emoji typing functionality
     --status          Show current emoji typing status
     -h, --help        Show this help message
 
@@ -40,7 +40,13 @@ EOF
 main() {
     # Check if main script exists
     if [[ ! -f "$MAIN_SCRIPT" ]]; then
-        echo -e "${RED}❌ ERROR: Main script not found: $MAIN_SCRIPT${NC}" >&2
+        echo -e "${RED}\u274c ERROR: Main script not found: $MAIN_SCRIPT${NC}" >&2
+        echo ""
+        echo -e "${YELLOW}🛠️ Troubleshooting steps:${NC}" >&2
+        echo -e "${YELLOW}   • Ensure you have installed the project correctly${NC}" >&2
+        echo -e "${YELLOW}   • Run './src/validate-installation.sh' for troubleshooting${NC}" >&2
+        echo -e "${YELLOW}   • Check 'docs/TROUBLESHOOTING.md' for common problems${NC}" >&2
+        echo -e "${YELLOW}   • Review the log file at '/tmp/emoji-typing-setup.log'${NC}" >&2
         exit 1
     fi
 

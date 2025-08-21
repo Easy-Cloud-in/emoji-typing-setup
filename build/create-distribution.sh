@@ -113,29 +113,40 @@ if [ "$SKIP_CHECKS" = false ]; then
     echo "🔍 Checking for updates from remote..."
     git fetch origin
 
-    # Check if local main is behind origin/main (being ahead is OK)
+    # Check if local main is behind remote main
     LOCAL=$(git rev-parse @)
     REMOTE=$(git rev-parse @{u})
-    BASE=$(git merge-base @ @{u})
-
-    # Only fail if local is behind remote (missing commits from remote)
-    if [ "$LOCAL" = "$BASE" ] && [ "$LOCAL" != "$REMOTE" ]; then
-        echo "❌ Error: Your local main branch is behind origin/main."
+    if [ "$LOCAL" != "$REMOTE" ]; then
+        echo "❌ Error: Your local main branch is not in sync with origin/main."
         echo "   Please pull the latest changes and try again."
         echo "   Run 'git pull origin main' to update your local branch."
         exit 1
-    elif [ "$LOCAL" != "$REMOTE" ]; then
-        # Local is ahead of remote - this is fine for development
-        echo "ℹ️  Note: Local main is ahead of origin/main (this is OK for development)"
     fi
 
-    # Check for unpushed commits (now allowed in development workflow)
+    # Check for unpushed commits
     UNPUSHED_COMMITS=$(git log @{u}..@ --oneline)
     if [ -n "$UNPUSHED_COMMITS" ]; then
-        echo "ℹ️  Note: You have unpushed commits (this is OK for development workflow)"
-        echo "   Unpushed commits:"
-        echo "   $UNPUSHED_COMMITS"
-        echo "   Remember to push after successful release creation"
+        if [ "$IGNORE_CHANGELOG" = true ]; then
+            # Check if unpushed commits only modify CHANGELOG.md
+            UNPUSHED_NON_CHANGELOG=$(git log @{u}..@ --name-only --pretty=format: | grep -v "^$" | grep -v "^CHANGELOG.md$" | head -1)
+            if [ -n "$UNPUSHED_NON_CHANGELOG" ]; then
+                echo "❌ Error: You have unpushed commits in your local main branch that affect files other than CHANGELOG.md."
+                echo "   Please push your changes to origin/main and try again."
+                echo "   Unpushed commits:"
+                echo "   $UNPUSHED_COMMITS"
+                exit 1
+            else
+                echo "⚠️  Warning: You have unpushed commits that only modify CHANGELOG.md - continuing..."
+                echo "   Unpushed commits:"
+                echo "   $UNPUSHED_COMMITS"
+            fi
+        else
+            echo "❌ Error: You have unpushed commits in your local main branch."
+            echo "   Please push your changes to origin/main and try again."
+            echo "   Unpushed commits:"
+            echo "   $UNPUSHED_COMMITS"
+            exit 1
+        fi
     fi
 
     if [ "$IGNORE_CHANGELOG" = true ]; then
@@ -170,16 +181,16 @@ CURRENT_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
 if [ "$CURRENT_TAG" != "v$LATEST_VERSION" ]; then
     # If not on the tag, check it out
     echo "Checking out tag v$LATEST_VERSION..."
-    
+
     # First try to checkout the tag
     if ! git checkout "v$LATEST_VERSION" 2>/dev/null; then
         echo "Tag not found locally, trying to fetch from remote..."
-        
+
         # Fetch just this specific tag
         if ! git fetch origin tag "v$LATEST_VERSION" --no-tags; then
             echo "Error: Could not fetch tag v$LATEST_VERSION from remote"
             echo "Available remote tags: $(git ls-remote --tags origin | cut -d'/' -f3 | sort -V | tr '\n' ' ')"
-            
+
             # Restore stashed changes before exit
             if [ "$STASH_CREATED" = true ]; then
                 echo "🔄 Restoring CHANGELOG.md changes..."
@@ -188,12 +199,12 @@ if [ "$CURRENT_TAG" != "v$LATEST_VERSION" ]; then
             fi
             exit 1
         fi
-        
+
         # Now try to checkout the fetched tag
         if ! git checkout "v$LATEST_VERSION" 2>/dev/null; then
             echo "Error: Still could not checkout tag v$LATEST_VERSION"
             echo "Please make sure the tag exists in the remote repository"
-            
+
             # Restore stashed changes before exit
             if [ "$STASH_CREATED" = true ]; then
                 echo "🔄 Restoring CHANGELOG.md changes..."
@@ -203,7 +214,7 @@ if [ "$CURRENT_TAG" != "v$LATEST_VERSION" ]; then
             exit 1
         fi
     fi
-    
+
     # Set up cleanup to return to previous branch and restore stash
     cleanup() {
         echo "Returning to branch main..."
@@ -230,7 +241,7 @@ chmod +x build/package.sh
 ./build/package.sh
 
 # Get the created zip file
-ZIP_FILE=$(ls -t dist/emoji-typing-setup-*.zip | head -1)
+ZIP_FILE=$(ls -t dist/git-hooks-setup-*.zip | head -1)
 
 if [ -z "$ZIP_FILE" ]; then
     echo "Error: Failed to create distribution package"
@@ -242,7 +253,7 @@ echo "\n🎉 Distribution package created: $ZIP_FILE"
 # Create GitHub release if requested
 if [ "$CREATE_RELEASE" = true ]; then
     echo "\n🚀 Creating GitHub release..."
-    
+
     # Check if release already exists
     if gh release view "v$LATEST_VERSION" >/dev/null 2>&1; then
         echo "⚠️  Warning: Release v$LATEST_VERSION already exists"
@@ -250,15 +261,27 @@ if [ "$CREATE_RELEASE" = true ]; then
         gh release upload "v$LATEST_VERSION" "$ZIP_FILE" --clobber
     else
         # Get release notes from the tag
-        RELEASE_NOTES=$(git log -1 --pretty=%B "v$LATEST_VERSION" 2>/dev/null || echo "Release v$LATEST_VERSION")
-        
+        # Extract release notes for the current version from CHANGELOG.md
+        RELEASE_NOTES=$(awk -v ver="v$LATEST_VERSION" '
+            BEGIN {found=0}
+            /^\#\# \[v[0-9]+\.[0-9]+\.[0-9]+\]/ {
+                if (found) exit
+                if ($0 ~ "\\[" ver "\\]") {found=1; print; next}
+            }
+            found {print}
+        ' CHANGELOG.md | sed '/^$/q')
+        # If no notes found, fallback to default
+        if [ -z "$RELEASE_NOTES" ]; then
+            RELEASE_NOTES="Release $LATEST_VERSION"
+        fi
+
         # Create the release
         gh release create "v$LATEST_VERSION" \
             --title "v$LATEST_VERSION" \
             --notes "$RELEASE_NOTES" \
             "$ZIP_FILE"
     fi
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ GitHub release created successfully!"
         echo "🔗 View release: https://github.com/$(gh repo view --json owner,name -q '.owner.login + "/" + .name')/releases/tag/v$LATEST_VERSION"

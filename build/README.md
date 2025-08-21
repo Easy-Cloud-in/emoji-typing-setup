@@ -6,78 +6,59 @@
 
 This directory contains all build-related scripts and tools for the emoji-typing-setup project.
 
-## 📋 Pattern Documentation
-
-- **Quick Reference**: [PATTERN_SUMMARY.md](PATTERN_SUMMARY.md) - When you say "use Easy-Cloud pattern"
-- **Full Documentation**: [BUILD_SYSTEM_PATTERN.md](BUILD_SYSTEM_PATTERN.md) - Complete pattern specification
-- **Setup Script**: [setup-build-system.sh](setup-build-system.sh) - Bootstrap new projects
-
 ## Scripts
 
-### `dev.sh` - Development Helper
+### Main Build & Release Scripts
 
-Main development workflow script.
+- `create-distribution.sh` – Creates a distribution package, performs git validation, and optionally creates a GitHub release.
+- `package.sh` – Builds the local zip package for distribution.
+
+### Development Helper (if present)
+
+- `dev.sh` – Main development workflow script.
+- `get-version.sh` – Version extraction and validation.
+- `create-release.sh` – Release workflow.
+- `build-dist.sh` – Package builder.
+
+### Usage Examples
 
 ```bash
-# Show current version
-./build/dev.sh version
+# Create distribution package
+./build/create-distribution.sh
 
-# Build distribution package
-./build/dev.sh build
+# Create package and GitHub release
+./build/create-distribution.sh --create-release
 
-# Create complete release
-./build/dev.sh release
-
-# Run tests
-./build/dev.sh test
-
-# Check code quality
-./build/dev.sh lint
-
-# Clean temporary files
-./build/dev.sh clean
+# Build local zip package only
+./build/package.sh
 ```
 
-### `get-version.sh` - Version Management
+## create-distribution.sh Flags & Usage
 
-Core version extraction and validation.
+The `create-distribution.sh` script supports the following flags:
 
-```bash
-# Get version only
-./build/get-version.sh
+- `--ignore-changelog` &nbsp;&nbsp;&nbsp; Ignore uncommitted changes in CHANGELOG.md
+- `--skip-checks` &nbsp;&nbsp;&nbsp; Skip all git validation checks (uncommitted changes, branch, sync)
+- `--create-release` &nbsp;&nbsp;&nbsp; Automatically create a GitHub release after packaging
+- `-h`, `--help` &nbsp;&nbsp;&nbsp; Show help message
 
-# Get version with source info
-./build/get-version.sh --verbose
-
-# Validate git state (main branch, clean tree)
-./build/get-version.sh --check-git
-```
-
-### `create-release.sh` - Release Workflow
-
-Complete release creation process with version/tag management.
+### Example Commands
 
 ```bash
-# Create release (git validation handled by build-dist.sh)
-./build/create-release.sh
+# Standard distribution creation
+./build/create-distribution.sh
 
-# Skip git validation
-./build/create-release.sh --skip-checks
+# Allow CHANGELOG.md changes
+./build/create-distribution.sh --ignore-changelog
 
-# See what would happen
-./build/create-release.sh --dry-run
-```
+# Skip all git validation checks
+./build/create-distribution.sh --skip-checks
 
-### `build-dist.sh` - Package Builder
+# Create package and GitHub release
+./build/create-distribution.sh --create-release
 
-Performs git validation and creates the distribution zip file.
-
-```bash
-# Build distribution package (includes git validation)
-./build/build-dist.sh
-
-# Skip git validation for development
-./build/build-dist.sh --skip-checks
+# Show help message
+./build/create-distribution.sh --help
 ```
 
 ## Directory Structure
@@ -85,17 +66,17 @@ Performs git validation and creates the distribution zip file.
 ```
 build/
 ├── README.md              # This file
-├── dev.sh                 # Main development helper
-├── get-version.sh         # Version extraction
-├── create-release.sh      # Release workflow
-├── build-dist.sh          # Package builder
+├── create-distribution.sh # Distribution builder & release script
+├── package.sh             # Local zip package builder
 ├── templates/             # Distribution templates (always fresh)
 │   ├── README.md          # Distribution README template
-│   └── files.list         # Files to include in package
+│   ├── files.list         # Files to include in package
+│   ├── install.sh         # Installer script for distribution
+│   └── uninstall.sh       # Uninstaller script for distribution
 └── staging/               # Temporary staging area (auto-cleaned)
 
 ../dist/                   # Output directory (clean - only zip files)
-└── emoji-typing-setup-*.zip
+└── emoji-typing-setup-v*.zip
 ```
 
 ## Workflow
@@ -103,25 +84,22 @@ build/
 ### Development
 
 ```bash
-# Check version
-./build/dev.sh version
-
 # Build and test
-./build/dev.sh build
+./build/package.sh
 ```
 
 ### Release
 
 ```bash
 # Complete release workflow
-./build/dev.sh release
+./build/create-distribution.sh --create-release
 ```
 
 This creates:
 
 - Git tag (e.g., `v1.0.0`)
 - Distribution package (`dist/emoji-typing-setup-v1.0.0.zip`)
-- Pushes tag to origin
+- Pushes tag to origin and creates GitHub release (if requested)
 
 ## Version Management
 
@@ -150,13 +128,15 @@ Edit `build/templates/files.list` to control what goes in the package:
 src/emoji-typing-setup.sh:emoji-typing-setup.sh
 config/settings.conf:config/settings.conf
 LICENSE:LICENSE
+build/templates/install.sh:install.sh
+build/templates/uninstall.sh:uninstall.sh
 ```
 
 Edit `build/templates/README.md` to customize the distribution README.
 
 ## Git State Requirements
 
-Git validation is performed by `build-dist.sh` (single validation point):
+Git validation is performed by `create-distribution.sh` (single validation point):
 
 - ✅ Must be on `main` branch
 - ✅ Working tree must be clean (**CHANGELOG.md changes are allowed**)
@@ -168,13 +148,10 @@ For development/testing, you can skip git validation:
 
 ```bash
 # Skip git checks for build
-./build/dev.sh build --skip-checks
-
-# Skip git checks for release
-./build/dev.sh release --skip-checks
+./build/create-distribution.sh --skip-checks
 ```
 
-**Note**: The `--skip-checks` flag is passed through to `build-dist.sh` which handles all validation.
+**Note**: The `--skip-checks` flag disables git validation.
 
 ## Requirements
 
@@ -182,3 +159,11 @@ For development/testing, you can skip git validation:
 - `zip` command available
 - Bash shell environment
 - Clean working tree on main branch (CHANGELOG.md changes allowed)
+
+## Troubleshooting
+
+- **Git errors:** Ensure you are on the `main` branch and your working tree is clean.
+- **Missing zip:** Make sure the `zip` command is installed.
+- **Permission issues:** Scripts set executable permissions automatically, but you may need to run `chmod +x *.sh` in some environments.
+
+---

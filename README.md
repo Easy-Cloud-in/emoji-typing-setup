@@ -1,5 +1,8 @@
 # Emoji Typing Setup
 
+**Developed by [Easy-Cloud](https://www.easy-cloud.in)**  
+**Author: Sakar SR**
+
 A simple tool to configure emoji typing functionality on Linux systems.
 
 ## Features
@@ -27,6 +30,20 @@ cd emoji-typing-setup
 chmod +x quick-install.sh
 ./quick-install.sh
 ```
+
+### Alternative Installation via Release Zip
+
+1. Download the latest zip file from the [Releases](https://github.com/your-repo/releases) page.
+2. Extract the zip file:
+    ```bash
+    unzip emoji-typing-setup-x.y.z.zip
+    cd emoji-typing-setup-x.y.z
+    ```
+3. Run the installer:
+    ```bash
+    chmod +x quick-install.sh
+    ./quick-install.sh
+    ```
 
 ### Alternative Installation Methods
 
@@ -82,6 +99,26 @@ emoji-status
 - Linux system (Ubuntu, Fedora, Pop!\_OS, etc.)
 - GNOME-based desktop environment (see [COMPATIBILITY.md](COMPATIBILITY.md))
 - sudo privileges for installation
+
+## Troubleshooting & Support
+
+- **Restart Required:** After installation or uninstallation, please restart your terminal or log out and log back in for all changes to take effect.
+- **Troubleshooting:**  
+  - Run `./src/validate-installation.sh` for a comprehensive check and troubleshooting.
+  - Check `docs/TROUBLESHOOTING.md` for common problems and solutions.
+  - Review the log file at `/tmp/emoji-typing-setup.log` for detailed error and status messages.
+
+## Manual Alias Setup (for unsupported shells)
+
+If your shell is not directly supported, you can manually add these aliases to your shell configuration file:
+
+```bash
+alias emoji-on="~/path/to/emoji-typing-setup/src/toggle-emoji-support.sh --enable-emoji"
+alias emoji-off="~/path/to/emoji-typing-setup/src/toggle-emoji-support.sh --disable-emoji"
+alias emoji-status="~/path/to/emoji-typing-setup/src/toggle-emoji-support.sh --status"
+```
+
+Replace `~/path/to/emoji-typing-setup` with the actual path to your installation.
 
 ## Quick Test
 
