@@ -1,7 +1,10 @@
 # Emoji Typing Setup
 
-**Developed by [Easy-Cloud](https://www.easy-cloud.in)**  
+**Developed by [Easy-Cloud](https://www.easy-cloud.in)**
 **Author: Sakar SR**
+
+test
+
 
 A simple tool to configure emoji typing functionality on Linux systems.
 
@@ -103,7 +106,7 @@ emoji-status
 ## Troubleshooting & Support
 
 - **Restart Required:** After installation or uninstallation, please restart your terminal or log out and log back in for all changes to take effect.
-- **Troubleshooting:**  
+- **Troubleshooting:**
   - Run `./src/validate-installation.sh` for a comprehensive check and troubleshooting.
   - Check `docs/TROUBLESHOOTING.md` for common problems and solutions.
   - Review the log file at `/tmp/emoji-typing-setup.log` for detailed error and status messages.
