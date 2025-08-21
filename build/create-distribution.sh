@@ -170,11 +170,7 @@ fi
 
 # Temporarily stash CHANGELOG.md changes if any and ignoring changelog
 STASH_CREATED=false
-if [ "$IGNORE_CHANGELOG" = true ] && [ -n "${CHANGELOG_CHANGES:-}" ]; then
-    echo "📦 Temporarily stashing CHANGELOG.md changes..."
-    git stash push -m "Temporary stash for distribution creation - CHANGELOG.md" CHANGELOG.md
-    STASH_CREATED=true
-fi
+# (Stashing will be done after packaging step if needed)
 
 # Check if we're already on the right tag
 CURRENT_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
@@ -241,7 +237,7 @@ chmod +x build/package.sh
 ./build/package.sh
 
 # Get the created zip file
-ZIP_FILE=$(ls -t dist/git-hooks-setup-*.zip | head -1)
+ZIP_FILE=$(ls -t dist/emoji-typing-setup-*.zip | head -1)
 
 if [ -z "$ZIP_FILE" ]; then
     echo "Error: Failed to create distribution package"
@@ -249,6 +245,13 @@ if [ -z "$ZIP_FILE" ]; then
 fi
 
 echo "\n🎉 Distribution package created: $ZIP_FILE"
+
+# Now stash CHANGELOG.md changes if needed (after packaging)
+if [ "$IGNORE_CHANGELOG" = true ] && [ -n "${CHANGELOG_CHANGES:-}" ] && [ "$STASH_CREATED" = false ]; then
+    echo "📦 Temporarily stashing CHANGELOG.md changes..."
+    git stash push -m "Temporary stash for distribution creation - CHANGELOG.md" CHANGELOG.md
+    STASH_CREATED=true
+fi
 
 # Create GitHub release if requested
 if [ "$CREATE_RELEASE" = true ]; then
