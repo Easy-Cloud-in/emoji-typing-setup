@@ -4,14 +4,17 @@
 
 set -e
 
+# Get the absolute path to the script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "🧹 Uninstalling Emoji Typing..."
 
 # Run the main uninstall (script is in root directory in zip package)
-./emoji-typing-setup.sh uninstall
+"$SCRIPT_DIR/emoji-typing-setup.sh" uninstall
 
 # Remove aliases
 echo "🗑️  Removing aliases..."
-./setup-aliases.sh remove
+"$SCRIPT_DIR/setup-aliases.sh" remove
 
 # Clean up any remaining files
 rm -rf ~/.config/emoji-typing-setup 2>/dev/null || true

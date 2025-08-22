@@ -4,18 +4,21 @@
 
 set -e
 
+# Get the absolute path to the script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "🚀 Installing Emoji Typing for Linux..."
 
 # Make scripts executable (all scripts are in root directory in zip package)
-chmod +x *.sh
+chmod +x "$SCRIPT_DIR"/*.sh
 
 # Run the main installation
-./emoji-typing-setup.sh install
+"$SCRIPT_DIR/emoji-typing-setup.sh" install
 
 # Set up convenient aliases
 echo ""
 echo "🔧 Setting up convenient aliases..."
-./setup-aliases.sh install
+"$SCRIPT_DIR/setup-aliases.sh" install
 
 echo ""
 echo "✅ Installation complete!"
@@ -26,4 +29,4 @@ echo "   emoji-on      - Enable emoji typing"
 echo "   emoji-off     - Disable emoji typing"
 echo "   emoji-status  - Check current status"
 echo ""
-echo "📖 Run './emoji-typing-setup.sh help' for more options"
+echo "📖 Run '$SCRIPT_DIR/emoji-typing-setup.sh help' for more options"
