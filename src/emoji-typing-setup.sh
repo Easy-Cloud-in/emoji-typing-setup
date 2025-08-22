@@ -23,7 +23,7 @@ set -euo pipefail
 
 # Source configuration files
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/../config/settings.conf"
+CONFIG_FILE="$SCRIPT_DIR/config/settings.conf"
 USER_CONFIG_FILE="$HOME/.config/emoji-typing-setup/user.conf"
 
 # Load main configuration
